@@ -36,3 +36,13 @@ export async function Edit(item, id) {
   console.log(message);
   return message;
 }
+export async function GetAllReplies(id) {
+  debugger;
+  console.log(id);
+
+  const { replies } = await axios.get(
+    `http://localhost:3000/message/replies/${id}`
+  );
+  console.log(replies);
+  return replies;
+}

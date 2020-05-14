@@ -9,13 +9,23 @@ class Guestbook extends Component {
       userId: null,
       name: "",
       message: "",
+      reply: false,
+    },
+    reply: {
+      MessageId: null,
+      userId: null,
+      name: "",
+      message: "",
     },
     messages: [],
+    replies: [],
+    replyState: "",
   };
   async componentDidMount() {
     debugger;
     const messages = await GetAll();
     this.setState({ messages });
+    console.log(this.state.info.reply);
   }
   handleChange = (e) => {
     //Clone
@@ -27,7 +37,6 @@ class Guestbook extends Component {
     console.log(this.state.info);
   };
   handleAdd = async (e) => {
-    debugger;
     if (this.state.info._id == null) {
       const userId = localStorage.getItem("userId");
       this.state.info.userId = userId;
@@ -35,10 +44,12 @@ class Guestbook extends Component {
         userId: this.state.info.userId,
         name: this.state.info.name,
         message: this.state.info.message,
+        reply: false,
       };
 
-      const data = await Add(msg);
-      console.log(data);
+      await Add(msg);
+      const messages = await GetAll();
+      this.setState({ messages });
     } else {
       const id = this.state.info._id;
       const msg = {
@@ -46,16 +57,21 @@ class Guestbook extends Component {
         name: this.state.info.name,
         message: this.state.info.message,
       };
-      const messages = await Edit(msg, id);
-      // this.setState({ messages });
+      await Edit(msg, id);
+      const messages = await GetAll();
+      this.setState({ messages });
     }
   };
-  handleEdit = async (id) => {
+  handleEdit = async (msg) => {
     debugger;
-    console.log(id);
-    const messages = this.state.messages.filter((msg) => msg._id != id);
-    const info = await GetItemById(id);
-    this.setState({ messages, info });
+    if (localStorage.getItem("userId") != msg.userId) {
+      alert("You not authorized");
+    } else {
+      console.log(msg._id);
+      const messages = this.state.messages.filter((m) => m._id != msg._id);
+      const info = await GetItemById(msg._id);
+      this.setState({ messages, info });
+    }
   };
   handleDelete = async (msg) => {
     debugger;
@@ -76,29 +92,50 @@ class Guestbook extends Component {
       }
     }
   };
+  handleReply = async (msg) => {
+    if (msg.reply == false) {
+      msg.reply = true;
+    } else {
+      msg.reply = false;
+    }
+    await Edit(msg, msg._id);
+    const reply = {
+      MessageId: msg._id,
+      userId: msg.userId,
+      name: this.state.info.name,
+      message: this.state.info.message,
+    };
+    this.setState({ reply });
+  };
   render() {
     return (
       <React.Fragment>
-        <label htmlFor="name">Name</label>
+        <div className="form-group">
+          <label htmlFor="name">Name</label>
 
-        <input
-          type="text"
-          name="name"
-          onChange={this.handleChange}
-          value={this.state.info.name}
-        />
-        <label htmlFor="message">Message</label>
+          <input
+            type="text"
+            name="name"
+            onChange={this.handleChange}
+            value={this.state.info.name}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="message">Message</label>
 
-        <textarea
-          name="message"
-          value={this.state.info.message}
-          onChange={this.handleChange}
-        />
+          <textarea
+            className="form-control"
+            name="message"
+            value={this.state.info.message}
+            onChange={this.handleChange}
+          />
+        </div>
         <button onClick={(e) => this.handleAdd(e)} className="btn btn--gray">
           Add
         </button>
         <Item
           messages={this.state.messages}
+          handleReply={this.handleReply}
           handleEdit={this.handleEdit}
           handleDelete={this.handleDelete}
         />

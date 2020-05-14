@@ -1,14 +1,13 @@
-import Item from './item';
+import React, { Component } from "react";
+
 class Reply extends Component {
-  state = {};
   render() {
+    const { replies } = this.props;
     return (
       <div>
-        <p>View all replies</p>
-        <div style={{marginLeft="50px"}}>
-        <Item />
-
-        </div>
+        {replies.map((r) => {
+          return <p>{r.message}</p>;
+        })}
       </div>
     );
   }
